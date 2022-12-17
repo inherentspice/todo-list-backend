@@ -1,0 +1,7 @@
+POST http://localhost:3001/api/todos
+Content-Type: application/json
+
+{
+  "content": "Implement backend",
+  "priority": "red"
+}
