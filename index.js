@@ -7,48 +7,18 @@ const Todo = require('./models/todos');
 app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
-const todosData = [
-  {
-    "id": "62977",
-    "name": "Finish Scaffolding",
-    "isDone": true,
-    "priority": "blue"
-  },
-  {
-    "id": "34156",
-    "name": "Implement Dark/Light Mode",
-    "isDone": true,
-    "priority": "green"
-  },
-  {
-    "id": "99558",
-    "name": "Make Beautiful CSS",
-    "isDone": false,
-    "priority": "orange"
-  },
-  {
-    "id": "62534",
-    "name": "Create Sidebar",
-    "isDone": false,
-    "priority": "red"
-  },
-  {
-    "id": "98742",
-    "name": "Implement Delete Todo Function",
-    "isDone": false,
-    "priority": "black"
-  }
-]
 
-app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
+app.get('/api/todos', (request, response, next) => {
+  Todo.find()
+    .then(todos => {
+      response.json(todos);
+    })
+    .catch(error => {
+      next(error)
+    })
 })
 
-app.get('/api/todos', (request, response) => {
-  response.json(todosData)
-})
-
-app.get('/api/todos/:id', (request, response) => {
+app.get('/api/todos/:id', (request, response, next) => {
   Todo.findById(request.params.id)
     .then(todo => {
       if (todo) {
@@ -58,12 +28,11 @@ app.get('/api/todos/:id', (request, response) => {
       }
     })
     .catch(error => {
-      console.log(error);
-      response.status(400).send({ error: 'malformatted id' });
+      next(error);
     })
 })
 
-app.post('/api/todos', (request, response) => {
+app.post('/api/todos', (request, response, next) => {
   const body = request.body;
 
   if (body.content === undefined || body.priority === undefined) {
@@ -82,15 +51,15 @@ app.post('/api/todos', (request, response) => {
   });
 })
 
-app.delete('/api/todos/:id', (request, response) => {
+app.delete('/api/todos/:id', (request, response, next) => {
   Todo.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end()
     })
-    .catch(error => console.log(error))
+    .catch(error => next(error))
 })
 
-app.put('/api/todos/:id', (request, response) => {
+app.put('/api/todos/:id', (request, response, next) => {
   const body = request.body;
 
   const todo = {
@@ -103,8 +72,29 @@ app.put('/api/todos/:id', (request, response) => {
     .then(updatedTodo => {
       response.json(updatedTodo)
     })
-    .catch(error => console.log(error))
+    .catch(error => next(error))
 })
+
+app.use((req, res, next) => {
+  // catch any validation errors
+  if (error.name === 'ValidationError') {
+    return res.status(400).send({ error: error.message });
+  }
+
+  // catch any cast errors
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' });
+  }
+
+  // catch any errors thrown by Mongoose methods
+  if (error.name === 'MongoError') {
+    return res.status(500).send({ error: error.message });
+  }
+
+  // catch any other errors
+  return res.status(500).send({ error: 'something went wrong' });
+});
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
