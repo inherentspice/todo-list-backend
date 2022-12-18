@@ -1,7 +1,8 @@
-require('dotenv').config()
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const Todo = require('./models/todos');
 
 app.use(cors());
 app.use(express.json());
@@ -48,49 +49,64 @@ app.get('/api/todos', (request, response) => {
 })
 
 app.get('/api/todos/:id', (request, response) => {
-  const id = Number(request.params.id);
-  const todo = todosData.find(todo => todo.id === id);
-  if (todo) {
-    response.json(todo);
-  } else {
-    response.status(404).end();
-  }
+  Todo.findById(request.params.id)
+    .then(todo => {
+      if (todo) {
+        response.json(todo);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch(error => {
+      console.log(error);
+      response.status(400).send({ error: 'malformatted id' });
+    })
 })
-
-const generateId = () => {
-  const maxId = todosData.length > 0
-    ? Math.max(...todosData.map(n => n.id))
-    : 0;
-    return maxId + 1;
-}
 
 app.post('/api/todos', (request, response) => {
   const body = request.body;
 
-  if (!body.content || !body.priority) {
+  if (body.content === undefined || body.priority === undefined) {
     return response.status(400).json({
       error: 'content missing'
     })
   }
 
-  const todo = {
+  const todo = new Todo({
     content: body.content,
     priority: body.priority,
     isDone: false,
-    id: generateId(),
-  }
-  todosData.concat(todo);
-  console.log(todosData);
-  response.json(todo);
+  })
+  todo.save().then(savedTodo => {
+    response.json(savedTodo);
+  });
 })
 
 app.delete('/api/todos/:id', (request, response) => {
-  const id = Number(request.params.id);
-  const todos = todosData.filter(todo => todo.id !== id);
-
-  response.status(204).end();
+  Todo.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => console.log(error))
 })
-const PORT = process.env.PORT || 3001;
+
+app.put('/api/todos/:id', (request, response) => {
+  const body = request.body;
+
+  const todo = {
+    content: body.content,
+    priority: body.priority,
+    isDone: body.isDone,
+  }
+
+  Todo.findByIdAndUpdate(request.params.id, todo, { new: true })
+    .then(updatedTodo => {
+      response.json(updatedTodo)
+    })
+    .catch(error => console.log(error))
+})
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
