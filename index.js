@@ -84,6 +84,24 @@ app.get('/api/todolists', (request, response, next) => {
     .catch(error => next(error))
 })
 
+app.post('/api/todolists/', (request, response, next) => {
+  const body = request.body;
+
+  if (body.content === undefined) {
+    return response.status(400).json({
+      error: 'content missing'
+    })
+  }
+
+  const todoList = new TodoLists({
+    content: body.content,
+    toggled: false,
+  })
+  todoList.save().then(savedTodoList => {
+    response.json(savedTodoList);
+  });
+})
+
 app.use((req, res, next) => {
   // catch any validation errors
   if (error.name === 'ValidationError') {
