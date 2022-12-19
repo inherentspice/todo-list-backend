@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const Todo = require('./models/todos');
+const TodoLists = require('./models/todo-lists');
 
 app.use(cors());
 app.use(express.json());
@@ -71,6 +72,14 @@ app.put('/api/todos/:id', (request, response, next) => {
   Todo.findByIdAndUpdate(request.params.id, todo, { new: true })
     .then(updatedTodo => {
       response.json(updatedTodo)
+    })
+    .catch(error => next(error))
+})
+
+app.get('/api/todolists', (request, response, next) => {
+  TodoLists.find()
+    .then(result => {
+      response.json(result)
     })
     .catch(error => next(error))
 })
