@@ -16,6 +16,7 @@ const todoSchema = new mongoose.Schema({
   content: String,
   priority: String,
   isDone: Boolean,
+  list: String,
 });
 
 todoSchema.set('toJSON', {
