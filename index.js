@@ -33,7 +33,9 @@ app.get('/api/todos', (request, response, next) => {
 app.post('/api/todos', (request, response, next) => {
   const body = request.body;
 
-  if (body.content === undefined || body.priority === undefined) {
+  if (body.content === undefined
+    || body.priority === undefined
+    || body.list === undefined) {
     return response.status(400).json({
       error: 'content missing'
     })
@@ -43,6 +45,7 @@ app.post('/api/todos', (request, response, next) => {
     content: body.content,
     priority: body.priority,
     isDone: false,
+    list: body.list,
   })
   todo.save().then(savedTodo => {
     response.json(savedTodo);
