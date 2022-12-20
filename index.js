@@ -10,28 +10,25 @@ app.use(express.json());
 app.use(express.static('build'));
 
 app.get('/api/todos', (request, response, next) => {
-  Todo.find()
-    .then(todos => {
-      response.json(todos);
-    })
-    .catch(error => {
-      next(error)
-    })
-})
-
-app.get('/api/todos/:id', (request, response, next) => {
-  Todo.findById(request.params.id)
-    .then(todo => {
-      if (todo) {
-        response.json(todo);
-      } else {
-        response.status(404).end();
-      }
-    })
-    .catch(error => {
-      next(error);
-    })
-})
+  const listName = request.query.list;
+  if (listName) {
+    Todo.find({ list: listName })
+      .then(todos => {
+        response.json(todos);
+      })
+      .catch(error => {
+        next(error)
+      })
+  } else {
+    Todo.find()
+      .then(todos => {
+        response.json(todos);
+      })
+      .catch(error => {
+        next(error)
+      })
+  }
+});
 
 app.post('/api/todos', (request, response, next) => {
   const body = request.body;
