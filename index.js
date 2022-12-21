@@ -52,6 +52,22 @@ app.post('/api/todos', (request, response, next) => {
   });
 })
 
+app.delete('/api/todos', (request, response, next) => {
+  const list = request.query.list;
+  if (!list) {
+    return response.status(400).json({
+      error: 'list parameter missing'
+    });
+  }
+
+  Todo.deleteMany({ list: list })
+    .then(() => {
+      response.status(204).end();
+    })
+    .catch(error => next(error));
+});
+
+
 app.delete('/api/todos/:id', (request, response, next) => {
   Todo.findByIdAndRemove(request.params.id)
     .then(result => {
@@ -100,6 +116,14 @@ app.post('/api/todolists/', (request, response, next) => {
   todoList.save().then(savedTodoList => {
     response.json(savedTodoList);
   });
+})
+
+app.delete('/api/todolists/:id', (request, response, next) => {
+  TodoLists.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end();
+    })
+    .catch(error => next(error))
 })
 
 app.use((req, res, next) => {
