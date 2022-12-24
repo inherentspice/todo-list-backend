@@ -52,20 +52,31 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 
 app.post("/sign-up", (req, res, next) => {
-  bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
+  User.findOne({ username: req.body.username }, (err, existingUser) => {
+
     if (err) {
-      next(err);
-    } else {
-      const user = new User({
-        username: req.body.username,
-        password: hashedPassword
-      }).save(err => {
-        if (err) {
-          return next(err);
-        }
-        res.status(200).send({ message: "sign up successful", username: req.body.username });
-      });
+      return next(err);
+
     }
+    if (existingUser) {
+      return res.status(400).send({ message: "Username already taken" });
+    }
+
+    bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
+      if (err) {
+        next(err);
+      } else {
+        const user = new User({
+          username: req.body.username,
+          password: hashedPassword
+        }).save(err => {
+          if (err) {
+            return next(err);
+          }
+          res.status(200).send({ message: "sign up successful", username: req.body.username });
+        });
+      }
+    })
   })
 });
 
