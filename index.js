@@ -9,8 +9,6 @@ const app = express();
 const Todo = require('./models/todos');
 const TodoLists = require('./models/todo-lists');
 const User = require("./models/user");
-const { response } = require('express');
-const { rawListeners } = require('./models/todos');
 
 app.use(cors());
 app.use(express.json());
@@ -95,6 +93,14 @@ app.post("/log-in", (req, res, next) => {
       return res.status(200).send({ message: "Log in successful", username: req.body.username });
     });
   })(req, res, next);
+});
+
+app.get('/api/user', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.send({ user: req.user });
+  } else {
+    res.status(401).send({ message: 'You are not authenticated' });
+  }
 });
 
 app.get('/api/todos', (request, response, next) => {
