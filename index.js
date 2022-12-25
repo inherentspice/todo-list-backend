@@ -9,8 +9,6 @@ const app = express();
 const Todo = require('./models/todos');
 const TodoLists = require('./models/todo-lists');
 const User = require("./models/user");
-const { response } = require('express');
-const { rawListeners } = require('./models/todos');
 
 app.use(cors());
 app.use(express.json());
@@ -52,20 +50,31 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: false }));
 
 app.post("/sign-up", (req, res, next) => {
-  bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
+  User.findOne({ username: req.body.username }, (err, existingUser) => {
+
     if (err) {
-      next(err);
-    } else {
-      const user = new User({
-        username: req.body.username,
-        password: hashedPassword
-      }).save(err => {
-        if (err) {
-          return next(err);
-        }
-        res.status(200).send({ message: "sign up successful", username: req.body.username });
-      });
+      return next(err);
+
     }
+    if (existingUser) {
+      return res.status(400).send({ message: "Username already taken" });
+    }
+
+    bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
+      if (err) {
+        next(err);
+      } else {
+        const user = new User({
+          username: req.body.username,
+          password: hashedPassword
+        }).save(err => {
+          if (err) {
+            return next(err);
+          }
+          res.status(200).send({ message: "sign up successful", username: req.body.username });
+        });
+      }
+    })
   })
 });
 
@@ -84,6 +93,14 @@ app.post("/log-in", (req, res, next) => {
       return res.status(200).send({ message: "Log in successful", username: req.body.username });
     });
   })(req, res, next);
+});
+
+app.get('/api/user', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.send({ user: req.user });
+  } else {
+    res.status(401).send({ message: 'You are not authenticated' });
+  }
 });
 
 app.get('/api/todos', (request, response, next) => {
