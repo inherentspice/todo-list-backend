@@ -160,7 +160,6 @@ app.post('/api/todos', (request, response, next) => {
     username: user.username
   })
 
-  console.log(todo);
   todo.save().then(savedTodo => {
     response.json(savedTodo);
   });
