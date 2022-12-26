@@ -95,6 +95,15 @@ app.post("/log-in", (req, res, next) => {
   })(req, res, next);
 });
 
+app.get("/log-out", (req, res, next) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.status(200).send({ message: "Log out successful" });
+  });
+});
+
 app.get('/api/user', (req, res) => {
   if (req.isAuthenticated()) {
     res.send({ user: req.user });
