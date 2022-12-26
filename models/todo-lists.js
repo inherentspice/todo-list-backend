@@ -14,6 +14,7 @@ mongoose.connect(url)
 const todoListsSchema = new mongoose.Schema({
   content: String,
   toggled: Boolean,
+  username: String,
 });
 
 todoListsSchema.set('toJSON', {

@@ -14,10 +14,10 @@ mongoose.connect(url)
 
 const userSchema = new mongoose.Schema({
   username: {
-      type: String,
-      required: true,
-      minLength: 1,
-    },
+    type: String,
+    required: true,
+    minLength: 1,
+  },
   password: {
     type: String,
     required: true,
