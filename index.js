@@ -105,16 +105,17 @@ app.get('/api/user', (req, res) => {
 
 app.get('/api/todos', (request, response, next) => {
   const listName = request.query.list;
+
+  const user = request.user
+
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
+
   if (listName) {
-    Todo.find({ list: listName })
-      .then(todos => {
-        response.json(todos);
-      })
-      .catch(error => {
-        next(error)
-      })
-  } else {
-    Todo.find()
+    Todo.find({ list: listName, username: user.username})
       .then(todos => {
         response.json(todos);
       })
@@ -126,6 +127,12 @@ app.get('/api/todos', (request, response, next) => {
 
 app.post('/api/todos', (request, response, next) => {
   const body = request.body;
+  const user = request.user;
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
 
   if (body.content === undefined
     || body.priority === undefined
@@ -140,7 +147,10 @@ app.post('/api/todos', (request, response, next) => {
     priority: body.priority,
     isDone: false,
     list: body.list,
+    username: user.username
   })
+
+  console.log(todo);
   todo.save().then(savedTodo => {
     response.json(savedTodo);
   });
@@ -148,13 +158,21 @@ app.post('/api/todos', (request, response, next) => {
 
 app.delete('/api/todos', (request, response, next) => {
   const list = request.query.list;
+  const user = request.user;
+
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
+
   if (!list) {
     return response.status(400).json({
       error: 'list parameter missing'
     });
   }
 
-  Todo.deleteMany({ list: list })
+  Todo.deleteMany({ list: list, username: user.username })
     .then(() => {
       response.status(204).end();
     })
@@ -163,6 +181,13 @@ app.delete('/api/todos', (request, response, next) => {
 
 
 app.delete('/api/todos/:id', (request, response, next) => {
+  const user = request.user;
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
+
   Todo.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end()
@@ -172,6 +197,13 @@ app.delete('/api/todos/:id', (request, response, next) => {
 
 app.put('/api/todos/:id', (request, response, next) => {
   const body = request.body;
+  const user = request.user;
+
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
 
   const todo = {
     content: body.content,
@@ -187,7 +219,13 @@ app.put('/api/todos/:id', (request, response, next) => {
 })
 
 app.get('/api/todolists', (request, response, next) => {
-  TodoLists.find()
+  const user = request.user;
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
+  TodoLists.find({ username: user.username })
     .then(result => {
       response.json(result)
     })
@@ -196,7 +234,13 @@ app.get('/api/todolists', (request, response, next) => {
 
 app.post('/api/todolists/', (request, response, next) => {
   const body = request.body;
+  const user = request.user;
 
+  if (user==="undefined") {
+    return response.status(400).json({
+      error: "user not authenticated"
+    })
+  }
   if (body.content === undefined) {
     return response.status(400).json({
       error: 'content missing'
@@ -206,6 +250,7 @@ app.post('/api/todolists/', (request, response, next) => {
   const todoList = new TodoLists({
     content: body.content,
     toggled: false,
+    username: user.username
   })
   todoList.save().then(savedTodoList => {
     response.json(savedTodoList);
@@ -213,6 +258,13 @@ app.post('/api/todolists/', (request, response, next) => {
 })
 
 app.delete('/api/todolists/:id', (request, response, next) => {
+  const user = request.user;
+  if (user==="undefined") {
+    return response.status(405).json({
+      error: 'user not authenticated'
+    });
+  }
+
   TodoLists.findByIdAndRemove(request.params.id)
     .then(result => {
       response.status(204).end();
