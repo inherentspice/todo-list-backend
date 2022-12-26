@@ -59,24 +59,25 @@ app.post("/sign-up", (req, res, next) => {
     if (existingUser) {
       return res.status(400).send({ message: "Username already taken" });
     }
-
-    bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
-      if (err) {
-        next(err);
-      } else {
-        const user = new User({
-          username: req.body.username,
-          password: hashedPassword
-        }).save(err => {
-          if (err) {
-            return next(err);
-          }
-          res.status(200).send({ message: "sign up successful", username: req.body.username });
-        });
-      }
-    })
   })
+
+  bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
+    if (err) {
+      next(err);
+    } else {
+      const user = new User({
+        username: req.body.username,
+        password: hashedPassword
+      }).save(err => {
+        if (err) {
+          return next(err);
+        }
+        res.status(200).send({ message: "sign up successful", username: req.body.username });
+      });
+    }
+   })
 });
+
 
 app.post("/log-in", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
